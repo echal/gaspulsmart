@@ -1,0 +1,1778 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GASPUL Smart Dashboard - Kanwil Kemenag Sulbar</title>
+    
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #4F46E5;
+            --primary-dark: #3730A3;
+            --secondary-color: #06B6D4;
+            --success-color: #10B981;
+            --warning-color: #F59E0B;
+            --danger-color: #EF4444;
+            --dark-bg: #0F172A;
+            --dark-card: #1E293B;
+            --dark-border: #334155;
+            --light-text: #F8FAFC;
+            --muted-text: #94A3B8;
+            --accent-gradient: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            --card-shadow-dark: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--dark-bg);
+            color: var(--light-text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: var(--accent-gradient);
+            padding: 1.5rem 0;
+            box-shadow: var(--card-shadow-dark);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .title-section h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .title-section p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-primary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Loading Spinner */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--dark-border);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: var(--dark-card);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--card-shadow-dark);
+            border: 1px solid var(--dark-border);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-gradient);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: var(--accent-gradient);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: var(--muted-text);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem 0;
+        }
+
+        .section {
+            margin-bottom: 3rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-title i {
+            color: var(--primary-color);
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .select, .input {
+            padding: 0.75rem;
+            border: 1px solid var(--dark-border);
+            border-radius: 8px;
+            background: var(--dark-card);
+            color: var(--light-text);
+            font-size: 0.9rem;
+            min-width: 150px;
+        }
+
+        .select:focus, .input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background: var(--dark-card);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--card-shadow-dark);
+            border: 1px solid var(--dark-border);
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+            margin-top: 1rem;
+        }
+
+        /* Bidang Cards */
+        .bidang-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .bidang-card {
+            background: var(--dark-card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow-dark);
+            border: 1px solid var(--dark-border);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .bidang-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary-color);
+        }
+
+        .bidang-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .bidang-name {
+            font-weight: 600;
+            color: var(--light-text);
+            font-size: 1.1rem;
+            line-height: 1.4;
+        }
+
+        .bidang-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .bidang-stat {
+            text-align: center;
+        }
+
+        .bidang-stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .bidang-stat-label {
+            font-size: 0.8rem;
+            color: var(--muted-text);
+            margin-top: 0.25rem;
+        }
+
+        /* Recent Activity */
+        .activity-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid var(--dark-border);
+            transition: all 0.3s ease;
+        }
+
+        .activity-item:hover {
+            background: rgba(79, 70, 229, 0.05);
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--accent-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-meta {
+            font-size: 0.8rem;
+            color: var(--muted-text);
+        }
+
+        .activity-value {
+            font-weight: 600;
+            color: var(--success-color);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 15px;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .title-section h1 {
+                font-size: 1.5rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                justify-content: center;
+            }
+            
+            .select, .input {
+                min-width: 120px;
+            }
+            
+            .chart-wrapper {
+                height: 300px;
+            }
+            
+            .bidang-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Status Indicators */
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-online {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-offline {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        /* Error State */
+        .error-state {
+            text-align: center;
+            padding: 3rem;
+            background: var(--dark-card);
+            border-radius: 16px;
+            border: 1px solid var(--dark-border);
+        }
+
+        .error-icon {
+            font-size: 3rem;
+            color: var(--danger-color);
+            margin-bottom: 1rem;
+        }
+
+        .error-message {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .error-details {
+            color: var(--muted-text);
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--dark-card);
+            border: 1px solid var(--dark-border);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            box-shadow: var(--card-shadow-dark);
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast-success {
+            border-left: 4px solid var(--success-color);
+        }
+
+        .toast-error {
+            border-left: 4px solid var(--danger-color);
+        }
+
+        .toast-warning {
+            border-left: 4px solid var(--warning-color);
+        }
+
+        /* Last Update */
+        .last-update {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--muted-text);
+            font-size: 0.8rem;
+        }
+
+        .pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success-color);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* Chart Controls */
+        .chart-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .chart-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--dark-border);
+            background: transparent;
+            color: var(--muted-text);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .chart-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .chart-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        /* Data Table Styles */
+        .table-container {
+            background: var(--dark-card);
+            border-radius: 16px;
+            box-shadow: var(--card-shadow-dark);
+            border: 1px solid var(--dark-border);
+            margin-top: 1.5rem;
+            overflow: hidden;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--dark-border);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .table-header:hover {
+            background: rgba(79, 70, 229, 0.05);
+        }
+
+        .table-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .table-title i {
+            color: var(--primary-color);
+        }
+
+        .table-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .table-info {
+            color: var(--muted-text);
+            font-size: 0.9rem;
+        }
+
+        .table-toggle-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .table-toggle-btn:hover {
+            background: rgba(79, 70, 229, 0.1);
+        }
+
+        .table-toggle-btn.expanded {
+            transform: rotate(180deg);
+        }
+
+        .table-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .table-content.expanded {
+            max-height: 1000px;
+        }
+
+        .table-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem 1rem 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .table-search {
+            position: relative;
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .table-search i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted-text);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 1px solid var(--dark-border);
+            border-radius: 8px;
+            background: var(--dark-bg);
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .table-filters {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn-filter {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--dark-border);
+            border-radius: 6px;
+            background: transparent;
+            color: var(--light-text);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .btn-filter:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .table-wrapper {
+            padding: 0 2rem;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .data-table th {
+            background: var(--dark-bg);
+            color: var(--light-text);
+            font-weight: 600;
+            padding: 1rem 0.75rem;
+            text-align: left;
+            border-bottom: 2px solid var(--dark-border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .data-table td {
+            padding: 0.875rem 0.75rem;
+            border-bottom: 1px solid var(--dark-border);
+            color: var(--light-text);
+        }
+
+        .data-table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(79, 70, 229, 0.05);
+        }
+
+        .data-table tbody tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .data-table tbody tr:nth-child(even):hover {
+            background: rgba(79, 70, 229, 0.05);
+        }
+
+        .table-cell-number {
+            text-align: right;
+            font-weight: 500;
+            color: var(--success-color);
+        }
+
+        .table-cell-date {
+            color: var(--muted-text);
+            font-size: 0.85rem;
+        }
+
+        .table-cell-kategori {
+            font-weight: 500;
+        }
+
+        .table-cell-kabupaten {
+            color: var(--secondary-color);
+        }
+
+        .table-pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            border-top: 1px solid var(--dark-border);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .pagination-info {
+            color: var(--muted-text);
+            font-size: 0.9rem;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .pagination-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--dark-border);
+            border-radius: 6px;
+            background: transparent;
+            color: var(--light-text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .pagination-current {
+            font-weight: 600;
+            color: var(--primary-color);
+            min-width: 32px;
+            text-align: center;
+        }
+
+        /* Empty State */
+        .table-empty {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--muted-text);
+        }
+
+        .table-empty i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Mobile Responsive for Table */
+        @media (max-width: 768px) {
+            .table-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .table-search {
+                max-width: none;
+            }
+            
+            .table-filters {
+                justify-content: center;
+            }
+            
+            .table-wrapper {
+                padding: 0 1rem;
+            }
+            
+            .data-table {
+                font-size: 0.8rem;
+            }
+            
+            .data-table th,
+            .data-table td {
+                padding: 0.75rem 0.5rem;
+            }
+            
+            .table-pagination {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+        }
+
+        /* Scrollbar Styling */
+        .table-wrapper::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-track {
+            background: var(--dark-border);
+            border-radius: 3px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 3px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="title-section">
+                        <h1>GASPUL Smart Dashboard</h1>
+                        <p>Kantor Wilayah Kementerian Agama Sulawesi Barat</p>
+                    </div>
+                </div>
+                <div class="header-controls">
+                    <div class="last-update" id="lastUpdate">
+                        <span class="pulse"></span>
+                        Memuat...
+                    </div>
+                    <button class="btn btn-primary" id="refreshBtn">
+                        <i class="fas fa-refresh"></i>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Loading State -->
+            <div id="loadingState" class="loading">
+                <div class="spinner"></div>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div id="dashboardContent" style="display: none;">
+                <!-- Statistics Overview -->
+                <section class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-dashboard"></i>
+                            Ringkasan Dashboard
+                        </h2>
+                        <div class="status-indicator status-online" id="connectionStatus">
+                            <i class="fas fa-circle"></i>
+                            Online
+                        </div>
+                    </div>
+                    <div class="stats-grid" id="statsGrid">
+                        <!-- Stats will be populated here -->
+                    </div>
+                </section>
+
+                <!-- Charts Section -->
+                <section class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-chart-bar"></i>
+                            Visualisasi Data
+                        </h2>
+                        <div class="controls">
+                            <select class="select" id="bidangSelect">
+                                <option value="">Pilih Bidang...</option>
+                            </select>
+                            <select class="select" id="chartTypeSelect">
+                                <option value="bar">Bar Chart</option>
+                                <option value="pie">Pie Chart</option>
+                                <option value="line">Line Chart</option>
+                                <option value="doughnut">Doughnut Chart</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <div class="chart-controls">
+                            <button class="chart-btn active" data-axis="kategori">Kategori</button>
+                            <button class="chart-btn" data-axis="kabupaten">Kabupaten</button>
+                            <button class="chart-btn" data-axis="bulan">Bulan</button>
+                            <button class="chart-btn" data-axis="subKategori">Sub Kategori</button>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="mainChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Data Table Section -->
+                    <div class="table-container">
+                        <div class="table-header" id="tableToggle">
+                            <h3 class="table-title">
+                                <i class="fas fa-table"></i>
+                                Rekapan Data Tabel
+                            </h3>
+                            <div class="table-controls">
+                                <span class="table-info" id="tableInfo">0 baris data</span>
+                                <button class="table-toggle-btn" id="tableToggleBtn">
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-content" id="tableContent">
+                            <div class="table-actions">
+                                <div class="table-search">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="tableSearch" placeholder="Cari data..." class="search-input">
+                                </div>
+                                <div class="table-filters">
+                                    <button class="btn-filter" id="exportBtn">
+                                        <i class="fas fa-download"></i>
+                                        Export CSV
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="table-wrapper">
+                                <table class="data-table" id="dataTable">
+                                    <thead>
+                                        <tr id="tableHeaders">
+                                            <!-- Headers will be populated dynamically -->
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tableBody">
+                                        <!-- Data will be populated dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="table-pagination">
+                                <div class="pagination-info" id="paginationInfo">
+                                    Menampilkan 1-10 dari 0 data
+                                </div>
+                                <div class="pagination-controls">
+                                    <button class="pagination-btn" id="prevPageBtn" disabled>
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <span class="pagination-current" id="currentPage">1</span>
+                                    <button class="pagination-btn" id="nextPageBtn" disabled>
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Bidang Overview -->
+                <section class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-building"></i>
+                            Overview Bidang
+                        </h2>
+                    </div>
+                    <div class="bidang-grid" id="bidangGrid">
+                        <!-- Bidang cards will be populated here -->
+                    </div>
+                </section>
+
+                <!-- Recent Activity -->
+                <section class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-clock"></i>
+                            Aktivitas Terbaru
+                        </h2>
+                    </div>
+                    <div class="chart-container">
+                        <div class="activity-list" id="activityList">
+                            <!-- Recent activities will be populated here -->
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" class="error-state" style="display: none;">
+                <div class="error-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="error-message">Gagal memuat dashboard</div>
+                <div class="error-details" id="errorDetails">Terjadi kesalahan saat mengambil data dari server.</div>
+                <button class="btn btn-primary" onclick="initDashboard()">
+                    <i class="fas fa-retry"></i>
+                    Coba Lagi
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <script>
+        // Configuration
+        const CONFIG = {
+            API_URL: 'https://script.google.com/macros/s/AKfycbye1okY0arSSN-G8O1-4y9FY7Wa9tyPxC-N7mJjpLLaq4VZLBpBZHGGO-AJ_egDQfI/exec', // Replace with your actual script URL
+            REFRESH_INTERVAL: 300000, // 5 minutes
+            ANIMATION_DURATION: 300
+        };
+
+        // Global variables
+        let mainChart = null;
+        let dashboardData = null;
+        let refreshInterval = null;
+        let currentTableData = [];
+        let filteredTableData = [];
+        let currentPage = 1;
+        let itemsPerPage = 10;
+        let isTableExpanded = false;
+
+        // Initialize Dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initDashboard();
+            setupEventListeners();
+        });
+
+        function initDashboard() {
+            showLoading();
+            loadDashboardData();
+        }
+
+        function setupEventListeners() {
+            // Refresh button
+            document.getElementById('refreshBtn').addEventListener('click', function() {
+                this.disabled = true;
+                loadDashboardData();
+                setTimeout(() => {
+                    this.disabled = false;
+                }, 2000);
+            });
+
+            // Bidang selector
+            document.getElementById('bidangSelect').addEventListener('change', function() {
+                if (this.value) {
+                    loadSheetData(this.value);
+                }
+            });
+
+            // Chart type selector
+            document.getElementById('chartTypeSelect').addEventListener('change', function() {
+                const currentBidang = document.getElementById('bidangSelect').value;
+                if (currentBidang && mainChart) {
+                    updateChart();
+                }
+            });
+
+            // Chart axis buttons
+            document.querySelectorAll('.chart-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const currentBidang = document.getElementById('bidangSelect').value;
+                    if (currentBidang) {
+                        loadSheetData(currentBidang);
+                    }
+                });
+            });
+
+            // Table toggle
+            document.getElementById('tableToggle').addEventListener('click', toggleTable);
+            
+            // Table search
+            document.getElementById('tableSearch').addEventListener('input', function() {
+                searchTable(this.value);
+            });
+            
+            // Export button
+            document.getElementById('exportBtn').addEventListener('click', exportTableData);
+            
+            // Pagination buttons
+            document.getElementById('prevPageBtn').addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable();
+                }
+            });
+            
+            document.getElementById('nextPageBtn').addEventListener('click', () => {
+                const maxPages = Math.ceil(filteredTableData.length / itemsPerPage);
+                if (currentPage < maxPages) {
+                    currentPage++;
+                    renderTable();
+                }
+            });
+        }
+
+        // API Functions
+        async function makeAPICall(action, params = {}) {
+            try {
+                const url = new URL(CONFIG.API_URL);
+                url.searchParams.append('action', action);
+                
+                Object.keys(params).forEach(key => {
+                    if (params[key] !== null && params[key] !== undefined) {
+                        url.searchParams.append(key, params[key]);
+                    }
+                });
+
+                const response = await fetch(url.toString());
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.message || data.error || 'API call failed');
+                }
+                
+                return data;
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        async function loadDashboardData() {
+            try {
+                updateConnectionStatus(true);
+                
+                // Load overview data
+                const overviewData = await makeAPICall('getOverview');
+                dashboardData = overviewData;
+                
+                // Load available sheets
+                const sheetsData = await makeAPICall('getSheets');
+                
+                // Populate UI
+                populateStats(overviewData);
+                populateBidangGrid(overviewData.bidangSummaries);
+                populateRecentActivity(overviewData.recentActivity);
+                populateBidangSelector(sheetsData.sheets);
+                updateLastUpdate(overviewData.lastUpdate);
+                
+                showDashboard();
+                showToast('Dashboard berhasil dimuat', 'success');
+                
+                // Setup auto refresh
+                setupAutoRefresh();
+                
+            } catch (error) {
+                console.error('Failed to load dashboard:', error);
+                showError('Gagal memuat dashboard: ' + error.message);
+                updateConnectionStatus(false);
+            }
+        }
+
+        async function loadSheetData(sheetName) {
+            try {
+                const activeAxis = document.querySelector('.chart-btn.active').dataset.axis;
+                const chartType = document.getElementById('chartTypeSelect').value;
+                
+                const data = await makeAPICall('getData', {
+                    sheet: sheetName,
+                    xColumn: activeAxis,
+                    yColumn: 'jumlah',
+                    chartType: chartType
+                });
+                
+                renderChart(data.data, activeAxis, chartType, sheetName);
+                
+                // Load raw data for table
+                if (data.rawData && data.rawData.length > 0) {
+                    currentTableData = data.rawData;
+                    filteredTableData = [...currentTableData];
+                    currentPage = 1;
+                    updateTableInfo();
+                    renderTable();
+                }
+                
+            } catch (error) {
+                console.error('Failed to load sheet data:', error);
+                showToast('Gagal memuat data: ' + error.message, 'error');
+            }
+        }
+
+        // UI Functions
+        function showLoading() {
+            document.getElementById('loadingState').style.display = 'flex';
+            document.getElementById('dashboardContent').style.display = 'none';
+            document.getElementById('errorState').style.display = 'none';
+        }
+
+        function showDashboard() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('dashboardContent').style.display = 'block';
+            document.getElementById('errorState').style.display = 'none';
+            
+            // Add fade-in animation
+            document.getElementById('dashboardContent').classList.add('fade-in');
+            
+            // Initialize table state
+            initializeTable();
+        }
+
+        function showError(message) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('dashboardContent').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+            document.getElementById('errorDetails').textContent = message;
+        }
+
+        function populateStats(data) {
+            const statsGrid = document.getElementById('statsGrid');
+            
+            const stats = [
+                {
+                    icon: 'fas fa-database',
+                    value: data.totalRecords.toLocaleString('id-ID'),
+                    label: 'Total Records',
+                    color: 'var(--primary-color)'
+                },
+                {
+                    icon: 'fas fa-calculator',
+                    value: data.totalJumlah.toLocaleString('id-ID'),
+                    label: 'Total Jumlah',
+                    color: 'var(--success-color)'
+                },
+                {
+                    icon: 'fas fa-building',
+                    value: data.totalSheets,
+                    label: 'Total Bidang',
+                    color: 'var(--secondary-color)'
+                },
+                {
+                    icon: 'fas fa-tags',
+                    value: data.topKategori.length,
+                    label: 'Kategori Aktif',
+                    color: 'var(--warning-color)'
+                }
+            ];
+
+            statsGrid.innerHTML = stats.map(stat => `
+                <div class="stat-card fade-in">
+                    <div class="stat-header">
+                        <div class="stat-icon" style="background: ${stat.color};">
+                            <i class="${stat.icon}"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value">${stat.value}</div>
+                    <div class="stat-label">${stat.label}</div>
+                </div>
+            `).join('');
+        }
+
+        function populateBidangGrid(bidangSummaries) {
+            const bidangGrid = document.getElementById('bidangGrid');
+            
+            bidangGrid.innerHTML = bidangSummaries.map((bidang, index) => `
+                <div class="bidang-card fade-in" style="animation-delay: ${index * 0.1}s;" onclick="selectBidang('${bidang.bidang}')">
+                    <div class="bidang-header">
+                        <div class="bidang-name">${bidang.bidang}</div>
+                        <i class="fas fa-arrow-right" style="color: var(--primary-color);"></i>
+                    </div>
+                    <div class="bidang-stats">
+                        <div class="bidang-stat">
+                            <div class="bidang-stat-value">${bidang.recordCount.toLocaleString('id-ID')}</div>
+                            <div class="bidang-stat-label">Records</div>
+                        </div>
+                        <div class="bidang-stat">
+                            <div class="bidang-stat-value">${bidang.totalJumlah.toLocaleString('id-ID')}</div>
+                            <div class="bidang-stat-label">Total</div>
+                        </div>
+                        <div class="bidang-stat">
+                            <div class="bidang-stat-value">${bidang.uniqueKategori}</div>
+                            <div class="bidang-stat-label">Kategori</div>
+                        </div>
+                        <div class="bidang-stat">
+                            <div class="bidang-stat-value">${bidang.uniqueKabupaten}</div>
+                            <div class="bidang-stat-label">Kabupaten</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function populateRecentActivity(activities) {
+            const activityList = document.getElementById('activityList');
+            
+            if (!activities || activities.length === 0) {
+                activityList.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--muted-text);">Tidak ada aktivitas terbaru</div>';
+                return;
+            }
+            
+            activityList.innerHTML = activities.slice(0, 10).map((activity, index) => `
+                <div class="activity-item" style="animation-delay: ${index * 0.05}s;">
+                    <div class="activity-icon">
+                        <i class="fas fa-edit"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">${activity.kategori || 'Update Data'} - ${activity.bidang}</div>
+                        <div class="activity-meta">
+                            ${activity.kabupaten} • ${activity.bulan} ${activity.tahun} • 
+                            <span class="activity-value">${activity.jumlah.toLocaleString('id-ID')}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function populateBidangSelector(sheets) {
+            const bidangSelect = document.getElementById('bidangSelect');
+            
+            bidangSelect.innerHTML = '<option value="">Pilih Bidang...</option>' +
+                sheets.filter(sheet => sheet.available).map(sheet => 
+                    `<option value="${sheet.name}">${sheet.name} (${sheet.rowCount} records)</option>`
+                ).join('');
+        }
+
+        function selectBidang(bidangName) {
+            document.getElementById('bidangSelect').value = bidangName;
+            loadSheetData(bidangName);
+            
+            // Scroll to chart section
+            document.querySelector('.chart-container').scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+
+        // Chart Functions
+        function renderChart(data, xAxis, chartType, sheetName) {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            
+            if (mainChart) {
+                mainChart.destroy();
+            }
+            
+            const colors = [
+                '#4F46E5', '#06B6D4', '#10B981', '#F59E0B', '#EF4444',
+                '#8B5CF6', '#F97316', '#84CC16', '#EC4899', '#6366F1'
+            ];
+            
+            let chartConfig = {
+                type: chartType,
+                data: {
+                    labels: data.map(item => item[xAxis] || 'Tidak Ada Data'),
+                    datasets: [{
+                        label: 'Jumlah',
+                        data: data.map(item => item.jumlah || 0),
+                        backgroundColor: chartType === 'pie' || chartType === 'doughnut' 
+                            ? colors.slice(0, data.length)
+                            : colors[0] + '80',
+                        borderColor: chartType === 'pie' || chartType === 'doughnut' 
+                            ? colors.slice(0, data.length)
+                            : colors[0],
+                        borderWidth: 2,
+                        borderRadius: chartType === 'bar' ? 4 : 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `${sheetName} - ${xAxis.charAt(0).toUpperCase() + xAxis.slice(1)}`,
+                            color: '#F8FAFC',
+                            font: {
+                                size: 16,
+                                weight: '600'
+                            }
+                        },
+                        legend: {
+                            labels: {
+                                color: '#F8FAFC'
+                            }
+                        }
+                    },
+                    scales: chartType !== 'pie' && chartType !== 'doughnut' ? {
+                        x: {
+                            ticks: {
+                                color: '#94A3B8',
+                                maxRotation: 45
+                            },
+                            grid: {
+                                color: '#334155'
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#94A3B8',
+                                callback: function(value) {
+                                    return value.toLocaleString('id-ID');
+                                }
+                            },
+                            grid: {
+                                color: '#334155'
+                            }
+                        }
+                    } : {}
+                }
+            };
+            
+            mainChart = new Chart(ctx, chartConfig);
+        }
+
+        function updateChart() {
+            const bidang = document.getElementById('bidangSelect').value;
+            if (bidang) {
+                loadSheetData(bidang);
+            }
+        }
+
+        // Utility Functions
+        function updateConnectionStatus(online) {
+            const statusElement = document.getElementById('connectionStatus');
+            if (online) {
+                statusElement.className = 'status-indicator status-online';
+                statusElement.innerHTML = '<i class="fas fa-circle"></i> Online';
+            } else {
+                statusElement.className = 'status-indicator status-offline';
+                statusElement.innerHTML = '<i class="fas fa-circle"></i> Offline';
+            }
+        }
+
+        function updateLastUpdate(timestamp) {
+            const lastUpdateElement = document.getElementById('lastUpdate');
+            if (timestamp) {
+                const date = new Date(timestamp);
+                lastUpdateElement.innerHTML = `
+                    <span class="pulse"></span>
+                    Terakhir: ${date.toLocaleString('id-ID', { 
+                        timeZone: 'Asia/Makassar',
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })}
+                `;
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                    ${message}
+                </div>
+            `;
+            
+            document.getElementById('toastContainer').appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function setupAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+            
+            refreshInterval = setInterval(() => {
+                loadDashboardData();
+            }, CONFIG.REFRESH_INTERVAL);
+        }
+
+        // Table Functions
+        function initializeTable() {
+            // Reset table state
+            currentTableData = [];
+            filteredTableData = [];
+            currentPage = 1;
+            isTableExpanded = false;
+            
+            // Reset UI
+            document.getElementById('tableContent').classList.remove('expanded');
+            document.getElementById('tableToggleBtn').classList.remove('expanded');
+            document.getElementById('tableSearch').value = '';
+            document.getElementById('tableInfo').textContent = '0 baris data';
+            
+            // Show empty state
+            const tableHeaders = document.getElementById('tableHeaders');
+            const tableBody = document.getElementById('tableBody');
+            
+            tableHeaders.innerHTML = '<th colspan="7" style="text-align: center; color: var(--muted-text);">Pilih bidang untuk melihat data</th>';
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="table-empty">
+                        <i class="fas fa-info-circle"></i>
+                        <div>Pilih bidang dari dropdown di atas untuk melihat data dalam tabel</div>
+                    </td>
+                </tr>
+            `;
+            
+            updatePaginationInfo();
+            updatePaginationButtons();
+        }
+
+        function toggleTable() {
+            const tableContent = document.getElementById('tableContent');
+            const toggleBtn = document.getElementById('tableToggleBtn');
+            
+            isTableExpanded = !isTableExpanded;
+            
+            if (isTableExpanded) {
+                tableContent.classList.add('expanded');
+                toggleBtn.classList.add('expanded');
+            } else {
+                tableContent.classList.remove('expanded');
+                toggleBtn.classList.remove('expanded');
+            }
+        }
+
+        function updateTableInfo() {
+            const tableInfo = document.getElementById('tableInfo');
+            tableInfo.textContent = `${filteredTableData.length} baris data`;
+        }
+
+        function renderTable() {
+            const tableHeaders = document.getElementById('tableHeaders');
+            const tableBody = document.getElementById('tableBody');
+            
+            if (filteredTableData.length === 0) {
+                tableHeaders.innerHTML = '';
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="100%" class="table-empty">
+                            <i class="fas fa-table"></i>
+                            <div>Tidak ada data untuk ditampilkan</div>
+                        </td>
+                    </tr>
+                `;
+                updatePaginationInfo();
+                return;
+            }
+            
+            // Headers
+            const headers = ['Kategori', 'Sub Kategori', 'Jumlah', 'Tahun', 'Kabupaten', 'Bulan', 'Tanggal Update'];
+            tableHeaders.innerHTML = headers.map(header => `<th>${header}</th>`).join('');
+            
+            // Calculate pagination
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, filteredTableData.length);
+            const pageData = filteredTableData.slice(startIndex, endIndex);
+            
+            // Rows
+            tableBody.innerHTML = pageData.map(row => `
+                <tr>
+                    <td class="table-cell-kategori">${row.kategori || '-'}</td>
+                    <td>${row.subKategori || '-'}</td>
+                    <td class="table-cell-number">${(row.jumlah || 0).toLocaleString('id-ID')}</td>
+                    <td>${row.tahun || '-'}</td>
+                    <td class="table-cell-kabupaten">${row.kabupaten || '-'}</td>
+                    <td>${row.bulan || '-'}</td>
+                    <td class="table-cell-date">${formatTableDate(row.tanggalUpdate)}</td>
+                </tr>
+            `).join('');
+            
+            updatePaginationInfo();
+            updatePaginationButtons();
+        }
+
+        function formatTableDate(dateString) {
+            if (!dateString) return '-';
+            
+            try {
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return dateString;
+                
+                return date.toLocaleDateString('id-ID', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch (error) {
+                return dateString;
+            }
+        }
+
+        function searchTable(query) {
+            if (!query.trim()) {
+                filteredTableData = [...currentTableData];
+            } else {
+                const searchTerm = query.toLowerCase();
+                filteredTableData = currentTableData.filter(row => {
+                    return Object.values(row).some(value => 
+                        String(value).toLowerCase().includes(searchTerm)
+                    );
+                });
+            }
+            
+            currentPage = 1;
+            updateTableInfo();
+            renderTable();
+        }
+
+        function updatePaginationInfo() {
+            const paginationInfo = document.getElementById('paginationInfo');
+            const startIndex = (currentPage - 1) * itemsPerPage + 1;
+            const endIndex = Math.min(currentPage * itemsPerPage, filteredTableData.length);
+            
+            if (filteredTableData.length === 0) {
+                paginationInfo.textContent = 'Tidak ada data';
+            } else {
+                paginationInfo.textContent = `Menampilkan ${startIndex}-${endIndex} dari ${filteredTableData.length} data`;
+            }
+            
+            document.getElementById('currentPage').textContent = currentPage;
+        }
+
+        function updatePaginationButtons() {
+            const prevBtn = document.getElementById('prevPageBtn');
+            const nextBtn = document.getElementById('nextPageBtn');
+            const maxPages = Math.ceil(filteredTableData.length / itemsPerPage);
+            
+            prevBtn.disabled = currentPage <= 1;
+            nextBtn.disabled = currentPage >= maxPages || maxPages === 0;
+        }
+
+        function exportTableData() {
+            if (filteredTableData.length === 0) {
+                showToast('Tidak ada data untuk diekspor', 'warning');
+                return;
+            }
+            
+            try {
+                const headers = ['Kategori', 'Sub Kategori', 'Jumlah', 'Tahun', 'Kabupaten', 'Bulan', 'Tanggal Update'];
+                const csvContent = [
+                    headers.join(','),
+                    ...filteredTableData.map(row => [
+                        `"${(row.kategori || '').replace(/"/g, '""')}"`,
+                        `"${(row.subKategori || '').replace(/"/g, '""')}"`,
+                        row.jumlah || 0,
+                        `"${(row.tahun || '').replace(/"/g, '""')}"`,
+                        `"${(row.kabupaten || '').replace(/"/g, '""')}"`,
+                        `"${(row.bulan || '').replace(/"/g, '""')}"`,
+                        `"${(row.tanggalUpdate || '').replace(/"/g, '""')}"`
+                    ].join(','))
+                ].join('\n');
+                
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                
+                link.setAttribute('href', url);
+                link.setAttribute('download', `gaspul_data_${new Date().toISOString().split('T')[0]}.csv`);
+                link.style.visibility = 'hidden';
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showToast('Data berhasil diekspor', 'success');
+                
+            } catch (error) {
+                console.error('Export error:', error);
+                showToast('Gagal mengekspor data', 'error');
+            }
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+            if (mainChart) {
+                mainChart.destroy();
+            }
+            
+            // Reset table state
+            currentTableData = [];
+            filteredTableData = [];
+            currentPage = 1;
+            isTableExpanded = false;
+        });
+    </script>
+</body>
+</html>
